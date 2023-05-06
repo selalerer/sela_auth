@@ -33,19 +33,21 @@ public class InMemoryAuthorizationRepository implements AuthorizationRepository 
     }
 
     @Override
-    public boolean hasAllAuthorizations(String requiredAuthorizations, Collection<AuthorizationKey> entities) {
+    public boolean hasAllAuthorizations(Collection<Map.Entry<String, AuthorizationKey>> requiredAuthorizations) {
         synchronized (rwLock.readLock()) {
-            return entities.stream().map(repo::get)
-                    .allMatch(entityAuth -> AuthorizationUtil.hasAuth(requiredAuthorizations, entityAuth));
+            return requiredAuthorizations.stream().allMatch(e -> hasAuthorization(e.getKey(), e.getValue()));
         }
+    }
+
+    private boolean hasAuthorization(String requiredAuthorization, AuthorizationKey entity) {
+        return AuthorizationUtil.hasAuth(requiredAuthorization, repo.get(entity));
     }
 
     @Override
     public boolean saveIfHasAllAuthorizations(Collection<Map.Entry<AuthorizationKey, String>> authorizationsToSave,
-                                              String requiredAuthorizations,
-                                              Collection<AuthorizationKey> entities) {
+                                              Collection<Map.Entry<String, AuthorizationKey>> requiredAuthorizations) {
         synchronized (rwLock.writeLock()) {
-            if (!hasAllAuthorizations(requiredAuthorizations, entities)) {
+            if (!hasAllAuthorizations(requiredAuthorizations)) {
                 return false;
             }
             save(authorizationsToSave);

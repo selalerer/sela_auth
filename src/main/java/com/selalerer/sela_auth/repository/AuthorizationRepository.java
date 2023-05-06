@@ -13,13 +13,8 @@ public interface AuthorizationRepository {
     void save(Collection<Map.Entry<AuthorizationKey, String>> authorizations);
     boolean saveIfNoneExist(Collection<Map.Entry<AuthorizationKey, String>> authorizations);
 
-    /**
-     * @param requiredAuthorizations The string "CRUD" or a part of it
-     */
-    boolean hasAllAuthorizations(String requiredAuthorizations,
-                                 Collection<AuthorizationKey> entities);
+    boolean hasAllAuthorizations(Collection<Map.Entry<String, AuthorizationKey>> requiredAuthorizations);
 
     boolean saveIfHasAllAuthorizations(Collection<Map.Entry<AuthorizationKey, String>> authorizationsToSave,
-                                       String requiredAuthorizations,
-                                       Collection<AuthorizationKey> entities);
+                                       Collection<Map.Entry<String, AuthorizationKey>> requiredAuthorizations);
 }
