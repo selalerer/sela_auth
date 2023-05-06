@@ -202,6 +202,62 @@ public abstract class AuthorizationRepositoryBaseTest {
                         .userAccessKey("555667")
                         .build())
         )));
+    }
 
+    @Test
+    public void hasAnyAuthorization() {
+        var testSubject = getTestSubject();
+
+        testSubject.save(List.of(
+                Map.entry(AuthorizationKey.builder()
+                        .application("bank")
+                        .accessedEntityType("*")
+                        .userAccessKey("manager")
+                        .build(), "CRUD"),
+                Map.entry(AuthorizationKey.builder()
+                                .application("bank")
+                                .accessedEntityType("bankAccount")
+                                .accessedEntityProperty("accountOwner")
+                                .accessedEntityPropertyValue("555667")
+                                .userAccessKey("555667")
+                                .build(),
+                        "RU")
+        ));
+
+        assertFalse(testSubject.hasAnyAuthorization(List.of(
+                List.of(
+                        Map.entry("D", AuthorizationKey.builder().application("bank")
+                                .accessedEntityType("*")
+                                .userAccessKey("bankEmployee")
+                                .build())
+                ),
+                List.of(
+                        Map.entry("D", AuthorizationKey.builder()
+                                .application("bank")
+                                .accessedEntityType("bankAccount")
+                                .accessedEntityProperty("accountOwner")
+                                .accessedEntityPropertyValue("555667")
+                                .userAccessKey("555667")
+                                .build())
+                )
+        )));
+
+        assertTrue(testSubject.hasAnyAuthorization(List.of(
+                List.of(
+                        Map.entry("D", AuthorizationKey.builder().application("bank")
+                                .accessedEntityType("*")
+                                .userAccessKey("manager")
+                                .build())
+                ),
+                List.of(
+                        Map.entry("D", AuthorizationKey.builder()
+                                .application("bank")
+                                .accessedEntityType("bankAccount")
+                                .accessedEntityProperty("accountOwner")
+                                .accessedEntityPropertyValue("555667")
+                                .userAccessKey("555667")
+                                .build())
+                )
+        )));
     }
 }

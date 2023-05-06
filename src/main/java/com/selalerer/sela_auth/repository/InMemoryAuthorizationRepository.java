@@ -54,4 +54,11 @@ public class InMemoryAuthorizationRepository implements AuthorizationRepository 
             return true;
         }
     }
+
+    @Override
+    public boolean hasAnyAuthorization(Collection<Collection<Map.Entry<String, AuthorizationKey>>> requiredAuthorizations) {
+        synchronized (rwLock.readLock()) {
+            return requiredAuthorizations.stream().anyMatch(this::hasAllAuthorizations);
+        }
+    }
 }
