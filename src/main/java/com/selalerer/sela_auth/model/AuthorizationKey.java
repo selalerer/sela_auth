@@ -6,13 +6,11 @@ import lombok.*;
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 public class AuthorizationKey {
     private String application;
     private String accessedEntityType;
-    // E.g. createdBy, tradingParty, counterParty, organization ID
-    private String accessedEntityProperty;
-    private String accessedEntityPropertyValue;
-    // E.g. user ID, group ID, role ID, organization ID
-    private String userAccessKey;
+    private String accessedEntityId;
+    private String accessingEntityType;
+    private String accessingEntityId;
 }

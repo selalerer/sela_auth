@@ -1,10 +1,8 @@
-package com.selalerer.sela_auth.until;
+package com.selalerer.sela_auth.util;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static java.util.Optional.ofNullable;

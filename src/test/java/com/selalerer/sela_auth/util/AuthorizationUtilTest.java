@@ -1,4 +1,4 @@
-package com.selalerer.sela_auth.until;
+package com.selalerer.sela_auth.util;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;

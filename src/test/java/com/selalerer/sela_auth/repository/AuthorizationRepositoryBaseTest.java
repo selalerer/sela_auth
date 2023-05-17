@@ -3,261 +3,55 @@ package com.selalerer.sela_auth.repository;
 import com.selalerer.sela_auth.model.AuthorizationKey;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-import java.util.Map;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class AuthorizationRepositoryBaseTest {
 
     protected abstract AuthorizationRepository getTestSubject();
 
-    @Test
-    public void saveIfNoneExist() {
-        var testSubject = getTestSubject();
+    private static final AuthorizationKey ANY_BANK_EMPLOYEE_TO_ANY_ACCOUNT = AuthorizationKey.builder()
+            .application("bank")
+            .accessedEntityType("bankAccount")
+            .accessedEntityId("*")
+            .accessingEntityType("employeeRole")
+            .accessingEntityId("*")
+            .build();
 
-        assertTrue(testSubject.saveIfNoneExist(List.of()));
+    private static final AuthorizationKey BANK_MANAGER_TO_ANY_ACCOUNT = AuthorizationKey.builder()
+            .application("bank")
+            .accessedEntityType("bankAccount")
+            .accessedEntityId("*")
+            .accessingEntityType("employeeRole")
+            .accessingEntityId("manager")
+            .build();
 
-        assertTrue(testSubject.saveIfNoneExist(List.of(Map.entry(AuthorizationKey.builder()
-                        .application("bank")
-                        .accessedEntityType("bankAccount")
-                        .accessedEntityProperty("accountOwner")
-                        .accessedEntityPropertyValue("555667")
-                        .userAccessKey("555667")
-                        .build(),
-                "RU"))));
-
-        assertTrue(testSubject.saveIfNoneExist(List.of(Map.entry(AuthorizationKey.builder()
-                        .application("bank")
-                        .accessedEntityType("bankAccount")
-                        .userAccessKey("bankEmployee")
-                        .build(),
-                "R"))));
-
-        assertFalse(testSubject.saveIfNoneExist(List.of(Map.entry(AuthorizationKey.builder()
-                        .application("bank")
-                        .accessedEntityType("bankAccount")
-                        .userAccessKey("bankEmployee")
-                        .build(),
-                "RU"))));
-    }
+    private static final AuthorizationKey CLIENT_887_ACCESS_TO_ACCOUNT_555667 = AuthorizationKey.builder()
+            .application("bank")
+            .accessedEntityType("bankAccount")
+            .accessedEntityId("555667")
+            .accessingEntityType("bankClient")
+            .accessingEntityId("7878")
+            .build();
 
     @Test
-    public void hasAllAuthorizations() {
+    public void hasAuth() {
         var testSubject = getTestSubject();
 
-        assertFalse(testSubject.hasAllAuthorizations(List.of(Map.entry("R", AuthorizationKey.builder()
-                .application("bank")
-                .accessedEntityType("bankAccount")
-                .userAccessKey("bankEmployee")
-                .build()))));
+        testSubject.save(ANY_BANK_EMPLOYEE_TO_ANY_ACCOUNT, "R");
+        testSubject.save(BANK_MANAGER_TO_ANY_ACCOUNT, "CRUD");
+        testSubject.save(CLIENT_887_ACCESS_TO_ACCOUNT_555667, "RU");
 
-        assertTrue(testSubject.saveIfNoneExist(List.of(Map.entry(AuthorizationKey.builder()
-                        .application("bank")
-                        .accessedEntityType("bankAccount")
-                        .accessedEntityProperty("accountOwner")
-                        .accessedEntityPropertyValue("555667")
-                        .userAccessKey("555667")
-                        .build(),
-                "RU"))));
+        assertFalse(testSubject.hasAuthorization(ANY_BANK_EMPLOYEE_TO_ANY_ACCOUNT, "C"));
+        assertTrue(testSubject.hasAuthorization(BANK_MANAGER_TO_ANY_ACCOUNT, "C"));
+        assertFalse(testSubject.hasAuthorization(CLIENT_887_ACCESS_TO_ACCOUNT_555667, "C"));
 
-        assertTrue(testSubject.saveIfNoneExist(List.of(Map.entry(AuthorizationKey.builder()
-                        .application("bank")
-                        .accessedEntityType("bankAccount")
-                        .userAccessKey("bankEmployee")
-                        .build(),
-                "R"))));
+        assertTrue(testSubject.hasAuthorization(ANY_BANK_EMPLOYEE_TO_ANY_ACCOUNT, "R"));
+        assertTrue(testSubject.hasAuthorization(BANK_MANAGER_TO_ANY_ACCOUNT, "R"));
+        assertTrue(testSubject.hasAuthorization(CLIENT_887_ACCESS_TO_ACCOUNT_555667, "R"));
 
-        assertTrue(testSubject.hasAllAuthorizations(List.of(Map.entry("R", AuthorizationKey.builder()
-                .application("bank")
-                .accessedEntityType("bankAccount")
-                .userAccessKey("bankEmployee")
-                .build()))));
-
-        assertTrue(testSubject.hasAllAuthorizations(List.of(Map.entry("R", AuthorizationKey.builder()
-                .application("bank")
-                .accessedEntityType("bankAccount")
-                .accessedEntityProperty("accountOwner")
-                .accessedEntityPropertyValue("555667")
-                .userAccessKey("555667")
-                .build()))));
-
-        assertFalse(testSubject.hasAllAuthorizations(List.of(Map.entry("R", AuthorizationKey.builder()
-                .application("bank")
-                .accessedEntityType("bankAccount")
-                .accessedEntityProperty("accountOwner")
-                .accessedEntityPropertyValue("555667")
-                .userAccessKey("12314")
-                .build()))));
-
-        assertFalse(testSubject.hasAllAuthorizations(List.of(
-                Map.entry("R", AuthorizationKey.builder()
-                        .application("bank")
-                        .accessedEntityType("bankAccount")
-                        .accessedEntityProperty("accountOwner")
-                        .accessedEntityPropertyValue("555667")
-                        .userAccessKey("12314")
-                        .build()),
-                Map.entry("R", AuthorizationKey.builder()
-                        .application("bank")
-                        .accessedEntityType("bankAccount")
-                        .accessedEntityProperty("accountOwner")
-                        .accessedEntityPropertyValue("555667")
-                        .userAccessKey("555667")
-                        .build())
-        )));
-
-        assertTrue(testSubject.hasAllAuthorizations(List.of(
-                Map.entry("R", AuthorizationKey.builder()
-                        .application("bank")
-                        .accessedEntityType("bankAccount")
-                        .accessedEntityProperty("accountOwner")
-                        .accessedEntityPropertyValue("555667")
-                        .userAccessKey("555667")
-                        .build()),
-                Map.entry("R", AuthorizationKey.builder()
-                        .application("bank")
-                        .accessedEntityType("bankAccount")
-                        .userAccessKey("bankEmployee")
-                        .build())
-        )));
+        assertFalse(testSubject.hasAuthorization(ANY_BANK_EMPLOYEE_TO_ANY_ACCOUNT, "U"));
+        assertTrue(testSubject.hasAuthorization(BANK_MANAGER_TO_ANY_ACCOUNT, "U"));
+        assertTrue(testSubject.hasAuthorization(CLIENT_887_ACCESS_TO_ACCOUNT_555667, "U"));
     }
 
-    @Test
-    public void saveIfHasAllAuthorizations() {
-        var testSubject = getTestSubject();
-
-        assertFalse(testSubject.saveIfHasAllAuthorizations(List.of(Map.entry(AuthorizationKey.builder()
-                                .application("bank")
-                                .accessedEntityType("bankAccount")
-                                .accessedEntityProperty("accountOwner")
-                                .accessedEntityPropertyValue("555667")
-                                .userAccessKey("555667")
-                                .build(),
-                        "RU")),
-                List.of(
-                        Map.entry("R", AuthorizationKey.builder()
-                                .application("bank")
-                                .accessedEntityType("bankAccount")
-                                .accessedEntityProperty("accountOwner")
-                                .accessedEntityPropertyValue("555667")
-                                .userAccessKey("555667")
-                                .build())
-                )));
-
-        assertTrue(testSubject.saveIfNoneExist(List.of(Map.entry(AuthorizationKey.builder()
-                        .application("bank")
-                        .accessedEntityType("bankAccount")
-                        .accessedEntityProperty("accountOwner")
-                        .accessedEntityPropertyValue("555667")
-                        .userAccessKey("555667")
-                        .build(),
-                "RU"))));
-
-        assertTrue(testSubject.hasAllAuthorizations(List.of(
-                Map.entry("R", AuthorizationKey.builder()
-                        .application("bank")
-                        .accessedEntityType("bankAccount")
-                        .accessedEntityProperty("accountOwner")
-                        .accessedEntityPropertyValue("555667")
-                        .userAccessKey("555667")
-                        .build())
-        )));
-
-        assertFalse(testSubject.hasAllAuthorizations(List.of(
-                Map.entry("RUD", AuthorizationKey.builder()
-                        .application("bank")
-                        .accessedEntityType("bankAccount")
-                        .accessedEntityProperty("accountOwner")
-                        .accessedEntityPropertyValue("555667")
-                        .userAccessKey("555667")
-                        .build())
-        )));
-
-        assertTrue(testSubject.saveIfHasAllAuthorizations(
-                List.of(Map.entry(AuthorizationKey.builder()
-                                .application("bank")
-                                .accessedEntityType("bankAccount")
-                                .accessedEntityProperty("accountOwner")
-                                .accessedEntityPropertyValue("555667")
-                                .userAccessKey("555667")
-                                .build(),
-                        "RUD")),
-                List.of(
-                        Map.entry("UR", AuthorizationKey.builder()
-                                .application("bank")
-                                .accessedEntityType("bankAccount")
-                                .accessedEntityProperty("accountOwner")
-                                .accessedEntityPropertyValue("555667")
-                                .userAccessKey("555667")
-                                .build()))
-        ));
-
-        assertTrue(testSubject.hasAllAuthorizations(List.of(
-                Map.entry("RUD", AuthorizationKey.builder()
-                        .application("bank")
-                        .accessedEntityType("bankAccount")
-                        .accessedEntityProperty("accountOwner")
-                        .accessedEntityPropertyValue("555667")
-                        .userAccessKey("555667")
-                        .build())
-        )));
-    }
-
-    @Test
-    public void hasAnyAuthorization() {
-        var testSubject = getTestSubject();
-
-        testSubject.save(List.of(
-                Map.entry(AuthorizationKey.builder()
-                        .application("bank")
-                        .accessedEntityType("*")
-                        .userAccessKey("manager")
-                        .build(), "CRUD"),
-                Map.entry(AuthorizationKey.builder()
-                                .application("bank")
-                                .accessedEntityType("bankAccount")
-                                .accessedEntityProperty("accountOwner")
-                                .accessedEntityPropertyValue("555667")
-                                .userAccessKey("555667")
-                                .build(),
-                        "RU")
-        ));
-
-        assertFalse(testSubject.hasAnyAuthorization(List.of(
-                List.of(
-                        Map.entry("D", AuthorizationKey.builder().application("bank")
-                                .accessedEntityType("*")
-                                .userAccessKey("bankEmployee")
-                                .build())
-                ),
-                List.of(
-                        Map.entry("D", AuthorizationKey.builder()
-                                .application("bank")
-                                .accessedEntityType("bankAccount")
-                                .accessedEntityProperty("accountOwner")
-                                .accessedEntityPropertyValue("555667")
-                                .userAccessKey("555667")
-                                .build())
-                )
-        )));
-
-        assertTrue(testSubject.hasAnyAuthorization(List.of(
-                List.of(
-                        Map.entry("D", AuthorizationKey.builder().application("bank")
-                                .accessedEntityType("*")
-                                .userAccessKey("manager")
-                                .build())
-                ),
-                List.of(
-                        Map.entry("D", AuthorizationKey.builder()
-                                .application("bank")
-                                .accessedEntityType("bankAccount")
-                                .accessedEntityProperty("accountOwner")
-                                .accessedEntityPropertyValue("555667")
-                                .userAccessKey("555667")
-                                .build())
-                )
-        )));
-    }
 }
